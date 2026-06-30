@@ -32,7 +32,7 @@ export function About() {
             <div className="absolute inset-0 bg-card rounded-2xl overflow-hidden border border-border flex items-center justify-center">
               <Image 
                 loading="lazy"
-                src="/me.jpg" 
+                src="/me.JPG" 
                 alt="Profile Photo" 
                 fill 
                 className="object-cover"
