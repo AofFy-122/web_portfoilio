@@ -1,18 +1,51 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Code2, Briefcase, Mail, Send } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Code2, Briefcase, Mail, Send, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 
 export function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form submitted:", formData);
-    alert("Thanks for your message! This is a demo form.");
-    setFormData({ name: "", email: "", message: "" });
+    setIsSubmitting(true);
+    setIsSuccess(false);
+    setIsError(false);
+    
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/tinnapop122@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          _subject: `New contact from ${formData.name}`,
+        }),
+      });
+
+      if (response.ok) {
+        setIsSuccess(true);
+        setFormData({ name: "", email: "", message: "" });
+        setTimeout(() => setIsSuccess(false), 5000);
+      } else {
+        setIsError(true);
+        setTimeout(() => setIsError(false), 5000);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setIsError(true);
+      setTimeout(() => setIsError(false), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -109,12 +142,37 @@ export function Contact() {
                   placeholder="Your message here..."
                 />
               </div>
+              <AnimatePresence>
+                {isSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="flex items-center gap-3 text-emerald-500 bg-emerald-500/10 p-4 rounded-lg overflow-hidden border border-emerald-500/20"
+                  >
+                    <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm font-medium">Message sent successfully! I'll get back to you soon.</span>
+                  </motion.div>
+                )}
+                {isError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="flex items-center gap-3 text-red-500 bg-red-500/10 p-4 rounded-lg overflow-hidden border border-red-500/20"
+                  >
+                    <XCircle className="w-5 h-5 flex-shrink-0" />
+                    <span className="text-sm font-medium">Something went wrong. Please try again.</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <button
                 type="submit"
-                className="w-full flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-white bg-cyan-600 hover:bg-cyan-700 transition-colors shadow-[0_0_15px_rgba(8,145,178,0.3)]"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-white bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[0_0_15px_rgba(8,145,178,0.3)]"
               >
-                Send Message
-                <Send className="ml-2 w-4 h-4" />
+                {isSubmitting ? "Sending..." : "Send Message"}
+                {!isSubmitting && <Send className="ml-2 w-4 h-4" />}
               </button>
             </form>
           </motion.div>
